@@ -9,4 +9,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ${CMAKE_HOME_DIRECTORY}/include)
 add_subdirectory(src)
 add_subdirectory(test)
 
+add_subdirectory(libs/logger)
+
 include_directories(${CMAKE_SOURCE_DIR}/include)
