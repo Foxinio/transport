@@ -6,7 +6,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
-        loggerlib)
+        logger)
 
 target_sources(${CMAKE_PROJECT_NAME}
     PUBLIC
