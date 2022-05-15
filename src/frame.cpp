@@ -11,7 +11,12 @@
 using lg = log::logger;
 
 frame::frame(int limit, int initial_size, std::ofstream&& out_file)
-    : limit(limit), current_frame_number(0), buffer(), out_file(out_file), initial_size(initial_size) {}
+    : limit(limit)
+    , received_map(MAX_FRAME, false)
+    , current_frame_number(0)
+    , buffer()
+    , out_file(out_file)
+    , initial_size(initial_size) {}
 
 frame::~frame() {
     if(final_buffer != nullptr)
