@@ -20,20 +20,18 @@ frame::~frame() {
 
 std::vector<int> frame::get_to_request() {
     std::vector<int> res;
-    received = 0;
+    last_asked = current_frame_number;
     for(int i = current_frame_number; auto iter : received_map) {
         if(i == limit) {
             if(final_buffer == nullptr) {
                 lg::info() << "asking to request final packet.\n";
                 res.push_back(limit);
-                received++;
             }
             break;
         }
-        if(!iter) {
+        if(!iter.operator bool()) {
             lg::debug() << "asking to request packet #" << i << " packet.\n";
             res.push_back(i);
-            received++;
         }
 
         i++;
@@ -43,7 +41,6 @@ std::vector<int> frame::get_to_request() {
 
 void frame::record_received(char* buf, int frame_number, int size) {
     if(size != 1000) {
-        received--;
         if(final_buffer == nullptr) {
             lg::info() << "received final packet of size " << size << "\n";
             final_buffer = new char[size];
@@ -55,13 +52,11 @@ void frame::record_received(char* buf, int frame_number, int size) {
         }
     }
     else if(frame_number == current_frame_number) {
-        received--;
         lg::debug() << "received packet #" << frame_number << " which is first - flushing.\n";
         out_file.write(buf, size);
         print_rest();
     }
     else if(frame_number > current_frame_number) {
-        received--;
         int i = current_frame_number - frame_number;
         if(!received_map[i]) {
             lg::debug() << "received packet #" << frame_number << " which isn't first - buffering.\n";
@@ -106,7 +101,7 @@ void frame::print_rest() {
 }
 
 bool frame::received_all() {
-    if(received <= 0){
+    if(last_asked+MAX_FRAME <= current_frame_number){
         lg::info() << "Received all returns true.\n";
         return true;
     }

@@ -21,7 +21,7 @@ private:
     char* final_buffer = nullptr;
     int final_size = 0;
     int initial_size;
-    int received = 0;
+    int last_asked = -MAX_FRAME;
 
     std::ofstream& out_file;
 public:
