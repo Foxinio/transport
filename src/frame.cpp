@@ -31,6 +31,7 @@ std::vector<int> frame::get_to_request() {
             break;
         }
         if(!iter) {
+            lg::debug() << "asking to request packet #" << i << " packet.\n";
             res.push_back(i);
             received++;
         }
@@ -105,5 +106,9 @@ void frame::print_rest() {
 }
 
 bool frame::received_all() {
-    return received <= 0;
+    if(received <= 0){
+        lg::info() << "Received all returns true.\n";
+        return true;
+    }
+    return false;
 }

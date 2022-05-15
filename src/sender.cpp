@@ -66,6 +66,7 @@ int sender::run() {
 
         lg::debug() << "entering Poll with wait time: " << std::max(duration, 0) << "ms\n";
         if(output.received_all() || Poll(sockfd, std::max(duration, 0)) == 0) {
+            lg::debug() << "sending requests\n";
             for(auto req : output.get_to_request()) {
                 int req_size = std::min(file_size - req*1000, 1000);
                 request_data(req, req_size);
@@ -74,6 +75,7 @@ int sender::run() {
             last_sent = time_point_cast<milliseconds>(high_resolution_clock::now());
         }
         else {
+            lg::debug() << "registering response\n";
             read_incoming();
         }
     }
