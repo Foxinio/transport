@@ -15,12 +15,13 @@ public:
 
 private:
     rotating_queue<MAX_FRAME> buffer;
-    std::vector<bool> received;
+    std::vector<bool> received_map;
     int current_frame_number;
     int limit;
     char* final_buffer = nullptr;
     int final_size = 0;
     int initial_size;
+    int received = 0;
 
     std::ofstream& out_file;
 public:
@@ -31,6 +32,7 @@ public:
     std::vector<int> get_to_request();
     void record_received(char* buf, int frame_number, int size = 1000);
     bool is_done();
+    bool received_all();
 
 private:
     void shift(int by);

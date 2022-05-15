@@ -6,6 +6,7 @@
 #include <sender.hpp>
 
 #include <sys_wrappers.hpp>
+#include <utils.hpp>
 
 #include <logger/fwd.hpp>
 
@@ -26,16 +27,20 @@ sender::sender(int sockfd, sockaddr_in addr, std::ofstream&& output, int file_si
 
 void sender::read_incoming() {
     char buffer[1024];
-    Recvfrom(sockfd, buffer, 1024, 0, nullptr, nullptr);
-    char* new_line = strstr(buffer, "\n");
-    *new_line = 0;
-    int start = -1,
-        length = -1;
-    if(sscanf(buffer, "DATA %d %d", &start, &length) != 2) {
-        lg::fatal() << "sscanf failed\n";
-        std::exit(EXIT_FAILURE);
+    if(recv_and_verify(buffer, 1024)) {
+        char *new_line = strstr(buffer, "\n");
+        *new_line = 0;
+        int start = -1,
+                length = -1;
+        if (sscanf(buffer, "DATA %d %d", &start, &length) != 2) {
+            lg::fatal() << "sscanf failed\n";
+            std::exit(EXIT_FAILURE);
+        }
+        output.record_received(new_line + 1, start / 1000, length);
     }
-    output.record_received(new_line + 1, start / 1000, length);
+    else {
+        lg::warning() << "Received packet from wrong sender.\n";
+    }
 }
 void sender::request_data(int page, int size) {
     char buffer[24] = {0};
@@ -59,8 +64,8 @@ int sender::run() {
     while(!output.is_done()) {
         int duration = (int)duration_cast<milliseconds>(last_sent + timeout - high_resolution_clock::now()).count();
 
-        lg::debug() << "\nentering Poll with wait time: " << std::max(duration, 0) << "ms - ";
-        if(Poll(sockfd, std::max(duration, 0)) == 0) {
+        lg::debug() << "entering Poll with wait time: " << std::max(duration, 0) << "ms\n";
+        if(output.received_all() || Poll(sockfd, std::max(duration, 0)) == 0) {
             for(auto req : output.get_to_request()) {
                 int req_size = std::min(file_size - req*1000, 1000);
                 request_data(req, req_size);
@@ -74,4 +79,12 @@ int sender::run() {
     }
 
     return EXIT_SUCCESS;
+}
+
+bool sender::recv_and_verify(char *buffer, int i) {
+    sockaddr_in received;
+    socklen_t len = sizeof(sockaddr_in);
+    Recvfrom(sockfd, buffer, 1024, 0, (sockaddr*)&received, &len);
+    lg::debug() << "Received packet from " << inet::get_addr(received.sin_addr.s_addr) << ":" << received.sin_port << "\n";
+    return received.sin_addr.s_addr == addr.sin_addr.s_addr && received.sin_port == addr.sin_port;
 }

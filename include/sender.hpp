@@ -19,4 +19,6 @@ public:
     void read_incoming();
     void request_data(int page, int size);
     int run();
+
+    bool recv_and_verify(char *buffer, int i);
 };

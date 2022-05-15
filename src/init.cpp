@@ -33,6 +33,11 @@ init::init(int argc, char* argv[]) {
         std::exit(EXIT_FAILURE);
     }
 
+    if(no_bits > 10'001'000) {
+        lg::fatal() << "number of bits is too big\n";
+        std::exit(EXIT_FAILURE);
+    }
+
     if(!inet_pton(AF_INET, argv[1], &addr.sin_addr.s_addr)) {
         lg::fatal() << "given address is not IPv4 address.\n";
         std::exit(EXIT_FAILURE);

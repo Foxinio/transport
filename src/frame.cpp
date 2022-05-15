@@ -20,16 +20,21 @@ frame::~frame() {
 
 std::vector<int> frame::get_to_request() {
     std::vector<int> res;
-    for(int i = current_frame_number; auto iter : received) {
+    received = 0;
+    for(int i = current_frame_number; auto iter : received_map) {
         if(i == limit) {
             if(final_buffer == nullptr) {
                 lg::info() << "asking to request final packet.\n";
                 res.push_back(limit);
+                received++;
             }
             break;
         }
-        if(!iter)
+        if(!iter) {
             res.push_back(i);
+            received++;
+        }
+
         i++;
     }
     return res;
@@ -37,6 +42,7 @@ std::vector<int> frame::get_to_request() {
 
 void frame::record_received(char* buf, int frame_number, int size) {
     if(size != 1000) {
+        received--;
         if(final_buffer == nullptr) {
             lg::info() << "received final packet of size " << size << "\n";
             final_buffer = new char[size];
@@ -48,15 +54,26 @@ void frame::record_received(char* buf, int frame_number, int size) {
         }
     }
     else if(frame_number == current_frame_number) {
+        received--;
         lg::debug() << "received packet #" << frame_number << " which is first - flushing.\n";
         out_file.write(buf, size);
         print_rest();
     }
     else if(frame_number > current_frame_number) {
-        lg::debug() << "received packet #" << frame_number << " which isn't first - buffering.\n";
+        received--;
         int i = current_frame_number - frame_number;
-        received[i] = true;
-        std::memcpy(buffer[i], buf, size);
+        if(!received_map[i]) {
+            lg::debug() << "received packet #" << frame_number << " which isn't first - buffering.\n";
+            received_map[i] = true;
+            std::memcpy(buffer[i], buf, size);
+        }
+        else {
+            lg::debug() << "received packet #" << frame_number << " which is a duplicate.\n";
+        }
+    }
+    else {
+        lg::debug() << "received packet #" << frame_number << " which is smaller than current frame number (="
+                    << current_frame_number << "), possibly a duplicate.\n";
     }
 }
 
@@ -66,15 +83,15 @@ bool frame::is_done() {
 
 void frame::shift(int by) {
     for(int i = 0; i+by < MAX_FRAME; i++) {
-        received[i] = received[i+by];
+        received_map[i] = received_map[i + by];
     }
 }
 
 void frame::print_rest() {
     int i = 1;
-    while(i < MAX_FRAME && received[i]) {
+    while(i < MAX_FRAME && received_map[i]) {
         out_file.write(buffer[i], 1000);
-        received[i] = false;
+        received_map[i] = false;
         i++;
     }
     current_frame_number+=i;
@@ -85,4 +102,8 @@ void frame::print_rest() {
     }
     shift(i);
     buffer.rotate(i);
+}
+
+bool frame::received_all() {
+    return received <= 0;
 }

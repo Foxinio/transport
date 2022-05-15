@@ -15,6 +15,7 @@ target_sources(${CMAKE_PROJECT_NAME}
         ${CMAKE_INCLUDE_CURRENT_DIR}/sender.hpp
         ${CMAKE_INCLUDE_CURRENT_DIR}/sys_wrappers.hpp
         ${CMAKE_INCLUDE_CURRENT_DIR}/rotating_queue.hpp
+        ${CMAKE_INCLUDE_CURRENT_DIR}/utils.hpp
     PRIVATE
         frame.cpp
         init.cpp
@@ -22,4 +23,5 @@ target_sources(${CMAKE_PROJECT_NAME}
         rotating_queue.cpp
         sender.cpp
         sys_wrappers.cpp
+        utils.cpp
         )
