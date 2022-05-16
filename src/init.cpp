@@ -4,6 +4,8 @@
 //
 #include <init.hpp>
 
+#include <sys_wrappers.hpp>
+
 #include <logger/fwd.hpp>
 
 #include <arpa/inet.h>
@@ -18,7 +20,7 @@ init::init(int argc, char* argv[]) {
         std::exit(EXIT_FAILURE);
     }
 
-    if((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+    if((sockfd = Socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
         lg::fatal() << "error on socket call: " << strerror(errno) << "\n";
         std::exit(EXIT_FAILURE);
     }
@@ -48,10 +50,13 @@ init::init(int argc, char* argv[]) {
         std::exit(EXIT_FAILURE);
     }
 
-//        if(bind(sockfd, (const sockaddr*)&addr, sizeof(sockaddr))) {
-//            lg::fatal() << "error on bind call: " << strerror(errno) << "\n";
-//            std::exit(EXIT_FAILURE);
-//        }
+    sockaddr_in bind_input {
+        .sin_family = AF_INET,
+        .sin_port = 0,
+        .sin_addr = {.s_addr = INADDR_ANY},
+        .sin_zero = {}
+    };
+    Bind(sockfd, (const sockaddr*)&bind_input, sizeof(sockaddr));
 
     addr.sin_family = AF_INET;
 }

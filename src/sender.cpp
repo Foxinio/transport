@@ -11,7 +11,6 @@
 #include <logger/fwd.hpp>
 
 #include <sys/socket.h>
-#include <sys/poll.h>
 
 #include <iostream>
 #include <chrono>
@@ -23,7 +22,6 @@ using lg = log::logger;
 sender::sender(int sockfd, sockaddr_in addr, std::ofstream&& output, int file_size)
     : sockfd(sockfd), addr(addr), file_size(file_size), output(file_size/1000, file_size, std::move(output)) {
 }
-
 
 void sender::read_incoming() {
     char buffer[1024];
@@ -42,16 +40,17 @@ void sender::read_incoming() {
         lg::warning() << "Received packet from wrong sender.\n";
     }
 }
+
 void sender::request_data(int page, int size) {
     char buffer[24] = {0};
-    int n = snprintf(buffer, 24, "GET %d %d\n", page*1000, size);
+    int n = snprintf(buffer, 24, "GET %d %d\n\n", page*1000, size);
     if(n < 0) {
         lg::fatal() << "sprintf failed\n";
         std::exit(EXIT_FAILURE);
     }
     lg::debug() << "sending request for #" << page << "\n";
     if(size < 1000)
-        lg::info() << "requested packet of size smaller then 1000\n";
+        lg::info() << "requested packet of size smaller then 1000: [" << size << "].\n";
     Sendto(sockfd, buffer, n, 0, (const sockaddr*)&addr, sizeof(sockaddr_in));
 }
 
@@ -64,7 +63,7 @@ int sender::run() {
     while(!output.is_done()) {
         int duration = (int)duration_cast<milliseconds>(last_sent + timeout - high_resolution_clock::now()).count();
 
-        lg::debug() << "entering Poll with wait time: " << std::max(duration, 0) << "ms\n";
+        lg::debug() << "\nentering Poll with wait time: " << std::max(duration, 0) << "ms\n";
         if(output.received_all() || Poll(sockfd, std::max(duration, 0)) == 0) {
             lg::debug() << "sending requests\n";
             for(auto req : output.get_to_request()) {

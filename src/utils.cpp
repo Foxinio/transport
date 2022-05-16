@@ -13,8 +13,6 @@ const char *not_valid_address_exception::what() const noexcept {
     return "given value doesn't represent valid IPv4 address.";
 }
 
-
-
 int find_zero(char* c, int size) {
     for(int i = 0; i < size; i++) {
         if(c[i] == 0) {
@@ -23,6 +21,7 @@ int find_zero(char* c, int size) {
     }
     return -1;
 }
+
 std::string get_addr_with_mask(const uint32_t addr, const uint8_t mask) {
     char buffer[19] = {0};
     if (inet_ntop(AF_INET, &addr, buffer, 19) == nullptr) {
@@ -92,6 +91,7 @@ uint32_t get_addr(const std::string& addr) {
 std::string get_addr_str(uint32_t addr) {
     return get_addr(addr);
 }
+
 std::string get_addr_with_mask_str(uint32_t addr, uint8_t mask) {
     return get_addr_with_mask(addr, mask);
 }

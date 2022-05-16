@@ -51,6 +51,10 @@ void frame::record_received(char* buf, int frame_number, int size) {
             final_buffer = new char[size];
             final_size = size;
             std::memcpy(final_buffer, buf, size);
+            if(current_frame_number == limit) {
+                out_file.write(final_buffer, size);
+                current_frame_number++;
+            }
         }
         else {
             lg::warning() << "received final packet again.\n";
@@ -79,7 +83,9 @@ void frame::record_received(char* buf, int frame_number, int size) {
 }
 
 bool frame::is_done() {
-    return current_frame_number > limit && (final_buffer != nullptr || initial_size%1000 == 0);
+    bool first = current_frame_number > limit;
+    bool second = (final_buffer != nullptr || initial_size%1000 == 0);
+    return first && second;
 }
 
 void frame::shift(int by) {
@@ -97,7 +103,7 @@ void frame::print_rest() {
     }
     current_frame_number+=i;
     lg::debug() << "printed " << i << " packets. Finishing on " << current_frame_number << "\n";
-    if(current_frame_number >= limit) {
+    if(current_frame_number >= limit && final_buffer != nullptr) {
         lg::debug() << "printed final packet\n";
         out_file.write(final_buffer, final_size);
     }

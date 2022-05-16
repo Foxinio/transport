@@ -8,6 +8,8 @@
 #include <utils.hpp>
 
 #include <sys/socket.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <cstdlib>
 #include <cstdio>
@@ -25,6 +27,7 @@ int Bind(int fd, __CONST_SOCKADDR_ARG addr, socklen_t len) {
     }
     return res;
 }
+
 int Socket(int domain, int type, int protocol) {
     int res = socket(domain, type, protocol);
     if(res < 0) {
@@ -33,7 +36,6 @@ int Socket(int domain, int type, int protocol) {
     }
     return res;
 }
-
 
 int Poll(int sockfd, int timeout) {
     pollfd fds = {
