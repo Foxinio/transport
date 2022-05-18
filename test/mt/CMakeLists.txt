@@ -24,8 +24,8 @@ target_sources(moduleTests
 target_include_directories(moduleTests PUBLIC ${GTEST_INCLUDE_DIRS})
 target_link_libraries(moduleTests
     PRIVATE
-        logger
-        GTest::gtest
-        GTest::gtest_main)
+        logger)
+#        GTest::gtest
+#        GTest::gtest_main)
 #        GTest::gmock
 #        GTest::gmock_main)

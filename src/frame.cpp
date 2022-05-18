@@ -66,7 +66,7 @@ void frame::record_received(char* buf, int frame_number, int size) {
         print_rest();
     }
     else if(frame_number > current_frame_number) {
-        int i = current_frame_number - frame_number;
+        int i = frame_number - current_frame_number;
         if(!received_map[i]) {
             lg::debug() << "received packet #" << frame_number << " which isn't first - buffering.\n";
             received_map[i] = true;
@@ -106,6 +106,7 @@ void frame::print_rest() {
     if(current_frame_number >= limit && final_buffer != nullptr) {
         lg::debug() << "printed final packet\n";
         out_file.write(final_buffer, final_size);
+        current_frame_number++;
     }
     shift(i);
     buffer.rotate(i);

@@ -6,44 +6,67 @@
 #include <sys_wrappers.hpp>
 
 #include <queue>
+#include <vector>
 #include <fstream>
 #include <memory>
 #include <random>
 #include <optional>
+#include <chrono>
+#include <thread>
+#include <stdexcept>
+
+using namespace std::chrono;
+using namespace std::chrono_literals;
 
 class fixture {
+    struct message {
+        int start;
+        int length;
+        time_point<high_resolution_clock, duration<float>> extraction_time;
+        message(int start, int length, time_point<high_resolution_clock, duration<float>> extraction_time)
+            : start(start), length(length), extraction_time(extraction_time) {}
+        message() = default;
+    };
+    class message_comparator{
+    public:
+        bool operator()(const message& l, const message& r) {
+            return l.extraction_time < r.extraction_time;
+        }
+    };
+
     std::ofstream output;
-    std::queue<std::pair<int,int>> pending;
+    std::priority_queue<message, std::vector<message>, message_comparator> pending;
     std::unique_ptr<sockaddr_in> addr;
     std::uniform_int_distribution<int> dist{0,99};
+    std::uniform_real_distribution<float> time_dist{0.5, 1.5};
     std::optional<std::mt19937> prng;
 
     int sockfd;
 public:
     fixture() = default;
+
     explicit fixture(const char* file_path, int fd)
         : output(file_path)
         , sockfd(fd)
         , prng(0) { }
 
+    void random_time_insert(int start, int length) {
+        time_point<high_resolution_clock, duration<float>> extraction_time =
+                high_resolution_clock::now() + duration<float>(time_dist(*prng));
+        pending.emplace(start, length, extraction_time);
+    }
+
     void make_chances(int start, int length) {
-        if(prng) {
-            int var = dist(*prng);
-            if(var < 2) {
-                pending.emplace(start, length);
-                pending.emplace(start, length);
-                pending.emplace(start, length);
-            }
-            if(var < 10) {
-                pending.emplace(start, length);
-                pending.emplace(start, length);
-            }
-            if(var < 50) {
-                pending.emplace(start, length);
-            }
+        if(!prng)
+            throw std::runtime_error("usage of not initialized variable.");
+
+        int var = dist(*prng);
+        if(var < 10) {
+            random_time_insert(start, length);
+            make_chances(start, length);
         }
-        else {
-            pending.emplace(start, length);
+        if(var < 50) {
+            random_time_insert(start, length);
         }
     }
 
@@ -68,19 +91,36 @@ public:
         return n;
     }
 
-    long pop_message(void* ptr, size_t n, sockaddr_in* in_addr) {
-        auto [start, length] = pending.front();
+    long pop_message(char* ptr, size_t n, sockaddr_in* in_addr) {
+        auto [start, length, extraction] = pending.top();
+        if(extraction > high_resolution_clock::now())
+            throw std::runtime_error("tried to extract message before it was ready\n");
         pending.pop();
         *in_addr = *this->addr;
-        int res = snprintf((char*)ptr, n, "DATA %d %d\n", start, length);
+        int res = snprintf(ptr, n, "DATA %d %d\n", start, length);
         if(res > n || res < 0) {
             in_addr->sin_addr.s_addr++;
+        }
+        else {
+//            std::fill(ptr+res, ptr+n, 'a'+(start/1000)%24);
+            std::fill(ptr+res, ptr+n, 's');
+            ptr[res+length-1] = '\n';
         }
         return res;
     }
 
-    int poll() {
-        return pending.size() > 0;
+    int poll(int timeout) {
+        if(!pending.empty()) {
+            if(high_resolution_clock::now() + milliseconds(timeout) < pending.top().extraction_time) {
+                std::this_thread::sleep_for(milliseconds(timeout));
+                return 0;
+            }
+            else {
+                std::this_thread::sleep_until(pending.top().extraction_time);
+                return 1;
+            }
+        }
+        return 0;
     }
 
     int get_fd() {
@@ -93,13 +133,13 @@ int Bind(int fd, __CONST_SOCKADDR_ARG addr, socklen_t len) {
     return 0;
 }
 int Socket(int domain, int type, int protocol) {
-    singleton = fixture("fixture_output.txt", 10);
+    singleton = fixture("../../../fixture_output.txt", 10);
     return 10;
 }
 
 long Recvfrom(int fd, void *buf, size_t n, int flags, struct sockaddr *addr, socklen_t *addr_len) {
     if(fd == singleton.get_fd()) {
-        return singleton.pop_message(buf, n, (sockaddr_in*)addr);
+        return singleton.pop_message((char*)buf, n, (sockaddr_in*)addr);
     }
     errno = EBADF;
     return -1;
@@ -115,7 +155,7 @@ long Sendto(int fd, const void *buf, size_t n, int flags, const struct sockaddr 
 
 int Poll(int sockfd, int timeout) {
     if(sockfd == singleton.get_fd()) {
-        return singleton.poll();
+        return singleton.poll(timeout);
     }
     errno = EBADF;
     return -1;
