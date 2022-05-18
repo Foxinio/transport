@@ -1,8 +1,8 @@
-add_subdirectory(transport)
+add_subdirectory(transport-lib)
 
 add_executable(transport
         main.cpp
-        transport/sys_wrappers.cpp)
+        sys_wrappers.cpp)
 
 target_include_directories(transport PUBLIC
         ${CMAKE_INCLUDE_CURRENT_DIR}

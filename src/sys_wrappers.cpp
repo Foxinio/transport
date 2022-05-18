@@ -8,8 +8,6 @@
 #include <utils.hpp>
 
 #include <sys/socket.h>
-#include <unistd.h>
-#include <fcntl.h>
 
 #include <cstdlib>
 #include <cstdio>
