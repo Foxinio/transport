@@ -136,7 +136,8 @@ int Bind(int fd, __CONST_SOCKADDR_ARG addr, socklen_t len) {
     return 0;
 }
 int Socket(int domain, int type, int protocol) {
-    singleton = fixture("../../../fixture_output.txt", 10);
+//    singleton = fixture("../../../fixture_output.txt", 10);
+    singleton = fixture("/dev/null", 10);
     return 10;
 }
 

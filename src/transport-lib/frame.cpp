@@ -4,9 +4,7 @@
 //
 #include <frame.hpp>
 
-#include <logger/logger.hpp>
-
-//#include <logger/fwd.hpp>
+#include <logger/fwd.hpp>
 
 #include <cstring>
 #include <iostream>
@@ -139,9 +137,8 @@ void frame::print_rest() {
 }
 
 void frame::print_progress() const {
-//    std::cout << current_frame_number << "\n";
-//    std::cout << std::fixed << std::setprecision(3) << (float) current_frame_number /
-//        (limit + (initial_size % 1000 != 0))*100 << "% done\n";
+    std::cout << std::fixed << std::setprecision(3) << (float) current_frame_number /
+        (limit + (initial_size % 1000 != 0))*100 << "% done\n";
 }
 
 bool frame::received_all() {
