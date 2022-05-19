@@ -25,7 +25,7 @@ init::init(int argc, char* argv[]) {
         std::exit(EXIT_FAILURE);
     }
 
-    if((addr.sin_port = std::strtol(argv[2], nullptr, 10)) == 0) {
+    if((addr.sin_port = htons(std::strtol(argv[2], nullptr, 10))) == 0) {
         lg::fatal() << "port arg is not a number\n";
         std::exit(EXIT_FAILURE);
     }

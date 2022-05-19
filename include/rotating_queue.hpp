@@ -3,7 +3,6 @@
 //
 #pragma once
 
-
 template<int size>
 class rotating_queue {
     char buffer[size*1000];
@@ -11,15 +10,12 @@ class rotating_queue {
 
 public:
     char* operator[](int i) {
-        i=i%size;
-        if(head+i >= size)
-            return buffer + 1000*(head+i - size);
-        return buffer + 1000*(head+i);
+        return buffer + 1000*((head+i)%size);
     }
     void rotate(int by) {
-        by = by%size;
-        if(head+by >= size)
-            head += by - size;
-        head += by;
+        head = (head + by) % size;
+//        if(head > size)
+//            throw std::out_of_range("rotating buffer out of range, head:" + std::to_string(head) +
+//                                    ", increased by " + std::to_string(by));
     }
 };

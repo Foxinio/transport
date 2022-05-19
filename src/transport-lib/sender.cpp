@@ -43,7 +43,7 @@ void sender::read_incoming() {
 
 void sender::request_data(int page, int size) {
     char buffer[24] = {0};
-    int n = snprintf(buffer, 24, "GET %d %d\n\n", page*1000, size);
+    int n = snprintf(buffer, 24, "GET %d %d\n", page*1000, size);
     if(n < 0) {
         lg::fatal() << "sprintf failed\n";
         std::exit(EXIT_FAILURE);
@@ -51,13 +51,14 @@ void sender::request_data(int page, int size) {
     lg::debug() << "sending request for #" << page << "\n";
     if(size < 1000)
         lg::info() << "requested packet of size smaller then 1000: [" << size << "].\n";
-    Sendto(sockfd, buffer, n, 0, (const sockaddr*)&addr, sizeof(sockaddr_in));
+    for(int i = 0; i < 2; i++)
+        Sendto(sockfd, buffer, n, 0, (const sockaddr*)&addr, sizeof(sockaddr_in));
 }
 
 int sender::run() {
     using namespace std::chrono;
     using namespace std::chrono_literals;
-    const seconds timeout = 3s;
+    const milliseconds timeout = 1s;
 
     auto last_sent = time_point_cast<milliseconds>(high_resolution_clock::now()-timeout);
     while(!output.is_done()) {

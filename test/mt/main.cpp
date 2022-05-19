@@ -8,8 +8,15 @@
 #include <logger/fwd.hpp>
 
 int main() {
-    log::logger::traits.set_level(log::level::debug);
-    const char* args[] = {"./transport", "127.0.0.1", "40001", "../../../output", "18000", nullptr};
+//    log::logger::traits.set_level(log::level::debug);
+    const char* args[] = {
+            "./transport",
+            "127.0.0.1",
+            "40001",
+            "../../../output",
+            "1000024",
+            nullptr
+    };
     auto i = init(5, (char**)args);
     auto worker = sender{i.sockfd,
                          i.addr,

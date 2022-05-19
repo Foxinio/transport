@@ -5,6 +5,7 @@ project(pracownia-3
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ${CMAKE_HOME_DIRECTORY}/include)
+set(CMAKE_LIBS_INCLUDE_CURRENT_DIR ${CMAKE_HOME_DIRECTORY}/libs/*/include)
 
 add_subdirectory(src)
 add_subdirectory(test)

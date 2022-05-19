@@ -8,8 +8,8 @@
 namespace log {
 
 class logger {
-    static std::ostream dev_null;
 public:
+    static std::ostream dev_null;
     static logger_traits traits;
 
     static entry fatal();

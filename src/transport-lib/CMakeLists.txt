@@ -2,6 +2,8 @@ add_library(transport-lib OBJECT)
 
 target_include_directories(transport-lib PUBLIC
         ${CMAKE_INCLUDE_CURRENT_DIR}
+        ${CMAKE_LIBS_INCLUDE_CURRENT_DIR}
+        ${CMAKE_HOME_DIRECTORY}
         )
 
 target_link_libraries(transport-lib

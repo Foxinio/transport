@@ -11,7 +11,7 @@
 
 class frame {
 public:
-    static constexpr int MAX_FRAME = 10;
+    static constexpr int MAX_FRAME = 500;
 
 private:
     rotating_queue<MAX_FRAME> buffer;
@@ -37,5 +37,6 @@ public:
 private:
     void shift(int by);
     void print_rest();
+    void print_progress() const;
 };
 

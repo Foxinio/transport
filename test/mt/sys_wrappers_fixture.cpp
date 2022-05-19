@@ -53,6 +53,8 @@ public:
     void random_time_insert(int start, int length) {
         time_point<high_resolution_clock, duration<float>> extraction_time =
                 high_resolution_clock::now() + duration<float>(time_dist(*prng));
+//        if(pending.size() > 1000)
+//            output << "\t[ERROR] Pending overfilled: " << pending.size() << "\n";
         pending.emplace(start, length, extraction_time);
     }
 
@@ -102,8 +104,9 @@ public:
             in_addr->sin_addr.s_addr++;
         }
         else {
-//            std::fill(ptr+res, ptr+n, 'a'+(start/1000)%24);
-            std::fill(ptr+res, ptr+n, 's');
+            int res1 = snprintf(ptr+res, n-res, "Start:%d/%d ", start, length);
+//            std::fill(ptr+res+res1, ptr+n, 'a'+(start/1000)%24);
+            std::fill(ptr+res+res1, ptr+n, ' ');
             ptr[res+length-1] = '\n';
         }
         return res;
